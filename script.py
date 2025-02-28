@@ -75,7 +75,6 @@ def check_diagonal():
 
     if game_state['game_board'][0][board_dimensions - 1] == game_state['symbol']:
         r_diagonal = check_right_diagonal()
-    print(f"l_diagonal: {l_diagonal}, r_diagonal: {r_diagonal}")
     return l_diagonal or r_diagonal
 
 
@@ -93,32 +92,43 @@ def check_gamedraw_status():
                 return False
     return True
 
+
+def get_valid_position():
+    while True:
+        try:
+            print(f"It's {game_state["player_turn"]} turn, and he can enter {game_state["symbol"]} on the position of his wish.")
+            position = list(
+                map(int, input(f"{game_state["player_turn"]}, please enter 2D-coordinates in a comma separated format:").split(","))
+            )
+            if len(position) != 2:
+                raise ValueError("Please enter exactly 2 coordinates.")
+            elif 0<=position[0]<board_dimensions and 0<=position[1]<board_dimensions:
+                return position
+            else:
+                print(f"Invalid input: {position}. Coordinates must be within 0 to {board_dimensions-1}.")
+        except ValueError as err:
+            print(f"Invalid input {err}. Please try again.")
+
 def game_logic():
-    print(f"It's {game_state["player_turn"]} turn, and he can enter {game_state["symbol"]} on the position of his wish.")
-    position = list(
-        (
-            input(f"{game_state["player_turn"]}, please enter 2D coordinates in a comma separated format: ").split(",")
-        )
-    )
-    #game_state["game_board"][1][1] = 'X'
-    if not check_gamedraw_status():
-        if game_state["game_board"][int(position[0])][int(position[1])] == "-":
-            game_state["game_board"][int(position[0])][int(position[1])] = game_state["symbol"]
-            if check_winner(lastPlayPosition=position):
+    while True:
+        if not check_gamedraw_status():
+            position = get_valid_position()
+            if game_state["game_board"][int(position[0])][int(position[1])] == "-":
+                game_state["game_board"][int(position[0])][int(position[1])] = game_state["symbol"]
+                if check_winner(lastPlayPosition=position):
+                    display_game_board(game_state=game_state)
+                    print(f"{game_state['player_turn']} wins the game.")
+                    return
                 display_game_board(game_state=game_state)
-                print(f"{game_state['player_turn']} wins the game.")
-                exit(1)
-            display_game_board(game_state=game_state)
-            print(f"Value of turn_counter is :{game_state["turn_counter"]}")
-            game_state["turn_counter"] = not (game_state["turn_counter"])
-            set_turn_and_symbol(turn_counter = game_state["turn_counter"])
-            game_logic()
+                game_state["turn_counter"] = not (game_state["turn_counter"])
+                set_turn_and_symbol(turn_counter = game_state["turn_counter"])
+            else:
+                print(f"{int(position[0]),int(position[1])} position is already filled with {game_state["game_board"][int(position[0])][int(position[1])]} symbol.Please enter another choice.")
+                display_game_board(game_state=game_state)
         else:
-            print(f"{int(position[0]),int(position[1])} position is already filled with {game_state["game_board"][int(position[0])][int(position[1])]} symbol.Please enter another choice.")
-            display_game_board(game_state=game_state)
-            game_logic()
-    else:
-        print("Game is draw")
+            print("Game is draw")
+            return 
+
 
 #player_turn, symbol = set_turn_and_symbol(turn_counter = turn_counter)
 board_dimensions = int(input(f"{game_state["player_turn"]}, please enter the dimension for the game: "))
